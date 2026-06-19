@@ -14,6 +14,11 @@ export interface ContaRecord {
   renk: string;
   createdAt: string;
   updatedAt: string;
+  attachmentCount?: number;
+}
+
+export interface ContaRecordDetail extends ContaRecord {
+  imageUrls: string[];
 }
 
 export function mapFormToContaRecord(

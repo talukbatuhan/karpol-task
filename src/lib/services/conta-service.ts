@@ -31,6 +31,90 @@ export async function getNextContaCode(): Promise<string> {
   return `CT-${String(nextNumber).padStart(4, "0")}`;
 }
 
+interface ContaRecordRow {
+  id: string;
+  conta_code: string;
+  firma_ismi: string;
+  marka: string;
+  uzunluk: string;
+  adet: number;
+  renk: string;
+  created_at: string;
+  updated_at: string;
+  conta_attachments?: { count: number }[];
+}
+
+function mapContaRecord(row: ContaRecordRow) {
+  return {
+    id: row.id,
+    contaCode: row.conta_code,
+    firmaIsmi: row.firma_ismi,
+    marka: row.marka,
+    uzunluk: row.uzunluk,
+    adet: row.adet,
+    renk: row.renk,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    attachmentCount: row.conta_attachments?.[0]?.count ?? 0,
+  };
+}
+
+export async function listContaRecords() {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("conta_records")
+    .select(
+      "id, conta_code, firma_ismi, marka, uzunluk, adet, renk, created_at, updated_at, conta_attachments(count)",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Conta kayıtları okunamadı: ${error.message}`);
+  }
+
+  return (data as ContaRecordRow[]).map(mapContaRecord);
+}
+
+export async function getContaRecordById(id: string) {
+  const supabase = createAdminClient();
+
+  const { data: record, error } = await supabase
+    .from("conta_records")
+    .select(
+      "id, conta_code, firma_ismi, marka, uzunluk, adet, renk, created_at, updated_at, conta_attachments(count)",
+    )
+    .eq("id", id)
+    .single();
+
+  if (error || !record) {
+    throw new Error(error?.message ?? "Conta kaydı bulunamadı");
+  }
+
+  const { data: attachments, error: attachmentError } = await supabase
+    .from("conta_attachments")
+    .select("file_path")
+    .eq("conta_record_id", id)
+    .order("created_at", { ascending: true });
+
+  if (attachmentError) {
+    throw new Error(`Conta görselleri okunamadı: ${attachmentError.message}`);
+  }
+
+  const imageUrls =
+    attachments?.map((attachment) => {
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(attachment.file_path);
+      return data.publicUrl;
+    }) ?? [];
+
+  return {
+    ...mapContaRecord(record as ContaRecordRow),
+    imageUrls,
+  };
+}
+
 interface SaveContaInput {
   form: ContaFormValues;
   images: File[];

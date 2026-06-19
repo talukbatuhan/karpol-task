@@ -22,7 +22,12 @@ function getDefaultValues(): Partial<ContaFormValues> {
   };
 }
 
-export function ContaForm() {
+interface ContaFormProps {
+  onSaved?: (payload: { id: string; contaCode: string }) => void;
+  onCancel?: () => void;
+}
+
+export function ContaForm({ onSaved, onCancel }: ContaFormProps) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [lastContaCode, setLastContaCode] = useState<string | null>(null);
   const [nextContaCode, setNextContaCode] = useState("CT-0001");
@@ -95,6 +100,7 @@ export function ContaForm() {
       setAttachments([]);
       reset(getDefaultValues());
       await loadNextCode();
+      onSaved?.({ id: result.id, contaCode: result.contaCode });
     } catch {
       setSubmitError("Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
     }
@@ -102,10 +108,19 @@ export function ContaForm() {
 
   return (
     <div className="border border-black bg-white">
-      <div className="border-b border-black px-4 py-4 md:px-6">
+      <div className="flex items-center justify-between gap-3 border-b border-black px-4 py-4 md:px-6">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-charcoal">
           Yeni Conta Kaydı
         </h2>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border border-black bg-white px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-charcoal hover:bg-slate-100"
+          >
+            İptal
+          </button>
+        )}
       </div>
 
       <form

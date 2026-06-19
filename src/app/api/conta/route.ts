@@ -1,9 +1,28 @@
 import { NextResponse } from "next/server";
 
 import { requireUser } from "@/lib/auth/require-user";
-import { saveContaRecord } from "@/lib/services/conta-service";
+import {
+  listContaRecords,
+  saveContaRecord,
+} from "@/lib/services/conta-service";
 import { getUploadedFiles } from "@/lib/utils/form-data";
 import { contaFormSchema } from "@/lib/validations/conta-form";
+
+export async function GET() {
+  try {
+    const user = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Giriş gerekli" }, { status: 401 });
+    }
+
+    const records = await listContaRecords();
+    return NextResponse.json({ records });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Conta kayıtları alınamadı";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
