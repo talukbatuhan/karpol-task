@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { AuthActions } from "@/components/layout/AuthActions";
 
-type AppNavKey = "is-takip" | "firmalar" | "conta-takip";
+type AppNavKey = "is-takip" | "firmalar" | "conta-takip" | "notlar";
 
 interface AppHeaderProps {
   title: string;
@@ -13,6 +13,7 @@ const NAV_ITEMS: { key: AppNavKey; href: string; label: string }[] = [
   { key: "is-takip", href: "/", label: "İş Takip" },
   { key: "firmalar", href: "/firmalar", label: "Firmalar" },
   { key: "conta-takip", href: "/conta-takip", label: "Conta Takip" },
+  { key: "notlar", href: "/notlar", label: "Notlar" },
 ];
 
 export function AppHeader({ title, active }: AppHeaderProps) {
